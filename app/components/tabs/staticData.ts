@@ -12,6 +12,21 @@ export interface DailyTask {
     phase: string
     tasks: DailyTask[]
   }
+
+  const C = {
+    Career: 'Career',
+    FeanPay: 'FeanPay',
+    Content: 'Content',
+    UKVisa: 'UK Visa',
+    Personal: 'Personal'
+  } as const
+  
+  const P = {
+    high: 'high',
+    medium: 'medium',
+    low: 'low'
+  } as const
+  
   
   // Helper to create task ID
   const tid = (day: number, index: number) => `d${day}-${index}`
@@ -59,8 +74,56 @@ export interface DailyTask {
     {day:31,date:'2026-02-05',dayOfWeek:'Wednesday',phase:'Phase 2: Active Search',tasks:[{id:tid(31,1),category:'Career',task:'Interview prep for scheduled calls',priority:'high'},{id:tid(31,2),category:'Career',task:'Apply to 4 positions',priority:'high'},{id:tid(31,3),category:'Career',task:'Follow up on 3 leads',priority:'high'},{id:tid(31,4),category:'FeanPay',task:'Launch referral program',priority:'medium'},{id:tid(31,5),category:'FeanPay',task:'Create viral hooks',priority:'medium'},{id:tid(31,6),category:'Content',task:'Research examples article #3',priority:'medium'},{id:tid(31,7),category:'UK Visa',task:'Submit endorsement application',priority:'low'}]},
   
     // Adding remaining days 32-90 in ultra-compact format to fit token limits
-    ...Array.from({length:59},(_, i)=>{const d=i+32;return{day:d,date:new Date(2026,0,6+d-1).toISOString().split('T')[0],dayOfWeek:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][new Date(2026,0,6+d-1).getDay()],phase:d<=60?'Phase 2: Active Search':'Phase 3: Closing & Scaling',tasks:d%7===0?[{id:tid(d,1),category:'Personal',task:'Rest & weekly review',priority:'high'}]:[{id:tid(d,1),category:'Career',task:d<=60?'Apply to 4 positions':'Scale income & close deals',priority:'high'},{id:tid(d,2),category:'FeanPay',task:`Target ${80+Math.floor((d-31)/2)*20} users`,priority:'high'},{id:tid(d,3),category:'Content',task:'Write/publish articles',priority:'medium'},{id:tid(d,4),category:'UK Visa',task:d<=70?'Process visa application':'Plan relocation',priority:'low'}]}})
-  ]
+    ...Array.from({ length: 59 }, (_, i): DayTasks => {
+      const d = i + 32
+      const dateObj = new Date(2026, 0, 6 + d - 1)
+    
+      const baseTask: DailyTask[] =
+        d % 7 === 0
+          ? [
+              {
+                id: tid(d, 1),
+                category: C.Personal,
+                task: 'Rest & weekly review',
+                priority: P.high
+              }
+            ]
+          : [
+              {
+                id: tid(d, 1),
+                category: C.Career,
+                task: d <= 60 ? 'Apply to 4 positions' : 'Scale income & close deals',
+                priority: P.high
+              },
+              {
+                id: tid(d, 2),
+                category: C.FeanPay,
+                task: `Target ${80 + Math.floor((d - 31) / 2) * 20} users`,
+                priority: P.high
+              },
+              {
+                id: tid(d, 3),
+                category: C.Content,
+                task: 'Write/publish articles',
+                priority: P.medium
+              },
+              {
+                id: tid(d, 4),
+                category: C.UKVisa,
+                task: d <= 70 ? 'Process visa application' : 'Plan relocation',
+                priority: P.low
+              }
+            ]
+    
+      return {
+        day: d,
+        date: dateObj.toISOString().split('T')[0],
+        dayOfWeek: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][dateObj.getDay()],
+        phase: d <= 60 ? 'Phase 2: Active Search' : 'Phase 3: Closing & Scaling',
+        tasks: baseTask
+      }
+    })
+      ]
   
   export const getTasksForDay = (day: number): DayTasks | undefined => {
     return DAILY_TASKS_DATA.find(d => d.day === day)
